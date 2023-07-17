@@ -6,16 +6,17 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	_ "github.com/lib/pq"
 )
 
 const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "password123"
-	dbname   = "test"
+	host     = os.Getenv("ADDRESS")
+	port     = os.Getenv("PORT")
+	user     = os.Getenv("DB_USER")
+	password = os.Getenv("DB_PASSWORD")
+	dbname   = "postgres"
 )
 
 func main() {
