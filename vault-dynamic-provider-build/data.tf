@@ -7,10 +7,6 @@ data "tfe_outputs" "vault_dynamic_provider_init" {
   workspace    = "vault-dynamic-provider-init"
 }
 
-data "aws_key_pair" "aws_key_name" {
-  key_name = var.aws_key_name
-}
-
 data "aws_arn" "peer_vpc" {
   arn = module.vault-dynamic-provider-vpc.vpc_arn
 }

@@ -76,7 +76,7 @@ resource "aws_db_subnet_group" "postgres" {
 
 resource "aws_db_instance" "postgres" {
   allocated_storage      = 10
-  db_name                = "postgres"
+  db_name                = "myappdb"
   engine                 = "postgres"
   engine_version         = "12.15"
   allow_major_version_upgrade = false

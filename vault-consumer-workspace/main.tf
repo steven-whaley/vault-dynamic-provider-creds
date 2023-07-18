@@ -7,8 +7,7 @@ ${vault_pki_secret_backend_cert.myapp.ca_chain}
   env_file = <<EOH
 DB_USER=${data.vault_kv_secret_v2.db_creds.data.admin_username}
 DB_PASSWORD=${data.vault_kv_secret_v2.db_creds.data.admin_password}
-ADDRESS=${data.tfe_outputs.vault_dynamic_provider_build.values.database_address}
-PORT=${data.tfe_outputs.vault_dynamic_provider_build.values.database_port}
+DB_HOST=${data.tfe_outputs.vault_dynamic_provider_build.values.database_address}
   EOH
 
   cloudinit_config_myapp = {
@@ -76,7 +75,7 @@ module "myapp-sec-group" {
   vpc_id = data.tfe_outputs.vault_dynamic_provider_build.values.vpc_id
 
   egress_cidr_blocks = ["0.0.0.0/0"]
-  egress_rules       = ["https-443-tcp", "http-80-tcp"]
+  egress_rules       = ["https-443-tcp", "http-80-tcp", "postgresql-tcp"]
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
   ingress_rules       = ["ssh-tcp"]

@@ -40,10 +40,6 @@ path "kv/*" {
   capabilities = ["read", "list"]
 }
 
-path "${data.tfe_outputs.vault_dynamic_provider_build.values.db_secrets_path}/creds/${data.tfe_outputs.vault_dynamic_provider_build.values.db_secrets_role}" {
-  capabilities = ["read", "list"]
-}
-
 path "${data.tfe_outputs.vault_dynamic_provider_build.values.pki_int_path}/issue/${data.tfe_outputs.vault_dynamic_provider_build.values.pki_int_role}" {
  capabilities = ["read", "list"]
 }
@@ -70,10 +66,6 @@ path "auth/token/revoke-self" {
 }
 
 path "kv/*" {
-  capabilities = ["read", "list"]
-}
-
-path "${data.tfe_outputs.vault_dynamic_provider_build.values.db_secrets_path}/creds/${data.tfe_outputs.vault_dynamic_provider_build.values.db_secrets_role}" {
   capabilities = ["read", "list"]
 }
 
