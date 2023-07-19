@@ -14,7 +14,7 @@ terraform {
   cloud {
     organization = "swhashi"
     workspaces {
-      name = "vault-consumer-workspace"
+      name = "vault-dpc-instruqt-consumer-workspace"
     }
   }
 }

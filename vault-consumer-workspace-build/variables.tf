@@ -1,13 +1,12 @@
-variable "aws_region" {
+variable "region" {
     type = string
     description = "AWS Region"
     default = "us-west-2"
 }
 
-variable "aws_key_name" {
+variable "public_key" {
     type = string
-    description = "EC2 instance public key to add for SSH access"
-    default = "sw-ec2key"
+    description = "Public key to use to connect to AWS instance"
 }
 
 variable "tfc_organization_name" {

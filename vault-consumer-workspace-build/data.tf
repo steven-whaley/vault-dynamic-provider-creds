@@ -1,9 +1,9 @@
-data "tfe_outputs" "vault_dynamic_provider_build" {
+data "tfe_outputs" "vault_dpc_instruqt_build" {
   organization = "swhashi"
-  workspace    = "vault-dynamic-provider-build"
+  workspace    = "vault-dpc-instruqt-build"
 }
 
-data "tfe_outputs" "vault_dynamic_provider_init" {
+data "tfe_outputs" "vault_dpc_instruqt_init" {
   organization = "swhashi"
-  workspace    = "vault-dynamic-provider-init"
+  workspace    = "vault-dpc-instruqt-init"
 }

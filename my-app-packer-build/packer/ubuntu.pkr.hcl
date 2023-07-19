@@ -8,31 +8,40 @@ packer {
   }
 }
 
-data "hcp-packer-iteration" "base-ubuntu" {
-  bucket_name = "hcp-ubuntu-base"
-  channel     = "latest"
-}
+// data "hcp-packer-iteration" "base-ubuntu" {
+//   bucket_name = "hcp-ubuntu-base"
+//   channel     = "latest"
+// }
 
-data "hcp-packer-image" "aws" {
-  bucket_name    = data.hcp-packer-iteration.base-ubuntu.bucket_name
-  iteration_id   = data.hcp-packer-iteration.base-ubuntu.id
-  cloud_provider = "aws"
-  region         = "us-west-2"
+// data "hcp-packer-image" "aws" {
+//   bucket_name    = data.hcp-packer-iteration.base-ubuntu.bucket_name
+//   iteration_id   = data.hcp-packer-iteration.base-ubuntu.id
+//   cloud_provider = "aws"
+//   region         = "us-west-2"
+// }
+
+data "amazon-ami" "ubuntu-focal-west" {
+  region = "us-west-2"
+  filters = {
+    name = "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"
+  }
+  most_recent = true
+  owners      = ["099720109477"]
 }
 
 source "amazon-ebs" "myapp" {
   region         = "us-west-2"
-  source_ami     = data.hcp-packer-image.aws.id
+  source_ami     = data.amazon-ami.ubuntu-focal-west.id
   instance_type  = "t2.nano"
   ssh_username   = "ubuntu"
   ssh_agent_auth = false
   ami_name       = "${var.image_name}_{{timestamp}}"
+  associate_public_ip_address = true
+  subnet_id = var.subnet_id
   tags = merge(var.default_base_tags, {
     SourceAMIName        = "{{ .SourceAMIName }}"
     builddate            = formatdate("MMM DD, YYYY", timestamp())
     buildtime            = formatdate("HH:mmaa", timestamp())
-    SourceImageChannel   = data.hcp-packer-iteration.base-ubuntu.channel_id
-    SourceImageIteration = data.hcp-packer-iteration.base-ubuntu.id
   })
 }
 

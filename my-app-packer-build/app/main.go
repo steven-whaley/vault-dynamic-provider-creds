@@ -31,6 +31,13 @@ func main() {
 	}
 	log.Print("Successfully connected to database server!")
 
+	_, err = db.Exec("DROP TABLE IF EXISTS example;")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print("Created table!")
+
 	_, err = db.Exec("CREATE TABLE example (messageno int, username varchar(255), message varchar(255) )")
 
 	if err != nil {

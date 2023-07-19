@@ -4,11 +4,6 @@ variable "region" {
   default     = "us-west-2"
 }
 
-variable "aws_key_name" {
-  type        = string
-  description = "The name of the key pair in your AWS account that you would like to add to the EC2 instances that are created"
-}
-
 variable "tfc_hostname" {
   type        = string
   default     = "app.terraform.io"

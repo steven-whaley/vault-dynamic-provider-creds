@@ -8,7 +8,7 @@ module "vault-dynamic-provider-vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.0.0"
 
-  name = "vault-dynamic-provider-vpc"
+  name = "vault-dpc-instruqt-vpc"
 
   cidr = "10.10.0.0/16"
   azs  = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -23,11 +23,11 @@ module "vault-dynamic-provider-vpc" {
 
 ### Create peering connection to Vault HVN 
 resource "hcp_aws_network_peering" "vault" {
-  hvn_id          = data.tfe_outputs.vault_dynamic_provider_init.values.hvn_id
-  peering_id      = "vault-dynamic-provider-cluster"
+  hvn_id          = data.tfe_outputs.vault_dpc_instruqt_init.values.hvn_id
+  peering_id      = "vault-dpc-instruqt-cluster"
   peer_vpc_id     = module.vault-dynamic-provider-vpc.vpc_id
   peer_account_id = module.vault-dynamic-provider-vpc.vpc_owner_id
-  peer_vpc_region = data.aws_arn.peer_vpc.region
+  peer_vpc_region = var.region
 }
 
 resource "aws_vpc_peering_connection_accepter" "peer" {
@@ -53,8 +53,8 @@ resource "aws_vpc_peering_connection_options" "dns" {
 }
 
 resource "hcp_hvn_route" "hcp_vault" {
-  hvn_link         = data.tfe_outputs.vault_dynamic_provider_init.values.hvn_self_link
-  hvn_route_id     = "vault-to-internal-clients"
+  hvn_link         = data.tfe_outputs.vault_dpc_instruqt_init.values.hvn_self_link
+  hvn_route_id     = "vault-dpc-instruqt"
   destination_cidr = module.vault-dynamic-provider-vpc.vpc_cidr_block
   target_link      = hcp_aws_network_peering.vault.self_link
 }
@@ -64,13 +64,13 @@ resource "aws_route" "vault" {
     for idx, rt_id in module.vault-dynamic-provider-vpc.private_route_table_ids : idx => rt_id
   }
   route_table_id            = each.value
-  destination_cidr_block    = data.tfe_outputs.vault_dynamic_provider_init.values.hvn_cidr
+  destination_cidr_block    = data.tfe_outputs.vault_dpc_instruqt_init.values.hvn_cidr
   vpc_peering_connection_id = hcp_aws_network_peering.vault.provider_peering_id
 }
 
 # Create AWS RDS Database
 resource "aws_db_subnet_group" "postgres" {
-  name       = "vault-dynamic-provider-group"
+  name       = "vault-dpc-instruqt"
   subnet_ids = module.vault-dynamic-provider-vpc.private_subnets
 }
 
@@ -101,7 +101,7 @@ module "rds-sec-group" {
   ingress_with_cidr_blocks = [
     {
       rule        = "postgresql-tcp"
-      cidr_blocks = "${data.tfe_outputs.vault_dynamic_provider_init.values.hvn_cidr},${module.vault-dynamic-provider-vpc.vpc_cidr_block}"
+      cidr_blocks = "${data.tfe_outputs.vault_dpc_instruqt_init.values.hvn_cidr},${module.vault-dynamic-provider-vpc.vpc_cidr_block}"
     }
   ]
 }
@@ -213,33 +213,44 @@ resource "vault_policy" "aws" {
     EOT
 }
 
-resource "aws_iam_user" "vault_mount_user" {
-  name                 = "demo-${local.my_email}"
-  permissions_boundary = data.aws_iam_policy.demo_user_permissions_boundary.arn
+resource "aws_iam_user" "vault_aws_user" {
+  name                 = "vault-aws-secrets-user"
   force_destroy        = true
 }
 
-resource "aws_iam_user_policy_attachment" "vault_mount_user" {
-  user       = aws_iam_user.vault_mount_user.name
-  policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
+resource "aws_iam_policy" "vault_aws_policy" {
+  name = "vault-aws-secrets-user-policy"
+  policy = data.aws_iam_policy_document.vault_aws_secrets_user_policy.json
 }
 
-resource "aws_iam_access_key" "vault_mount_user" {
-  user = aws_iam_user.vault_mount_user.name
+resource "aws_iam_user_policy_attachment" "vault_aws_user" {
+  user       = aws_iam_user.vault_aws_user.name
+  policy_arn     = aws_iam_policy.vault_aws_policy.arn
+}
+
+resource "aws_iam_access_key" "vault_aws_key" {
+  user = aws_iam_user.vault_aws_user.name
 }
 
 resource "vault_aws_secret_backend" "vault_aws" {
-  access_key        = aws_iam_access_key.vault_mount_user.id
-  secret_key        = aws_iam_access_key.vault_mount_user.secret
+  access_key        = aws_iam_access_key.vault_aws_key.id
+  secret_key        = aws_iam_access_key.vault_aws_key.secret
   description       = "Demo of the AWS secrets engine"
   region            = var.region
-  username_template = "{{ if (eq .Type \"STS\") }}{{ printf \"${aws_iam_user.vault_mount_user.name}-%s-%s\" (random 20) (unix_time) | truncate 32 }}{{ else }}{{ printf \"${aws_iam_user.vault_mount_user.name}-vault-%s-%s\" (unix_time) (random 20) | truncate 60 }}{{ end }}"
+  username_template = "{{ if (eq .Type \"STS\") }}{{ printf \"${aws_iam_user.vault_aws_user.name}-%s-%s\" (random 20) (unix_time) | truncate 32 }}{{ else }}{{ printf \"${aws_iam_user.vault_aws_user.name}-vault-%s-%s\" (unix_time) (random 20) | truncate 60 }}{{ end }}"
 }
 
-resource "vault_aws_secret_backend_role" "vault_role_iam_user_credential_type" {
+resource "vault_aws_secret_backend_role" "tf_plan_role" {
   backend                  = vault_aws_secret_backend.vault_aws.path
   credential_type          = "iam_user"
-  name                     = "vault-demo-iam-user"
-  permissions_boundary_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
-  policy_document          = data.aws_iam_policy_document.vault_dynamic_iam_user_policy.json
+  name                     = "tf_plan_role"
+  policy_document          = data.aws_iam_policy_document.vault_aws_plan_policy.json
+}
+
+
+resource "vault_aws_secret_backend_role" "tf_apply_role" {
+  backend                  = vault_aws_secret_backend.vault_aws.path
+  credential_type          = "iam_user"
+  name                     = "tf_apply_role"
+  policy_document          = data.aws_iam_policy_document.vault_aws_apply_policy.json
 }

@@ -23,8 +23,13 @@ output "aws_backend" {
     description = "Path for the AWS Secret Backend"
 }
 
-output "aws_role" {
-    value = vault_aws_secret_backend_role.vault_role_iam_user_credential_type.name
+output "aws_plan_role" {
+    value = vault_aws_secret_backend_role.tf_plan_role.name
+    description = "Name of AWS secret engine role"
+}
+
+output "aws_apply_role" {
+    value = vault_aws_secret_backend_role.tf_apply_role.name
     description = "Name of AWS secret engine role"
 }
 

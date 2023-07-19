@@ -1,7 +1,7 @@
 
 variable "image_name" {
   type    = string
-  default = "hcp-packer-myapp"
+  default = "vault-dpc-instruqt-myapp"
 }
 
 variable "default_base_tags" {
@@ -11,4 +11,9 @@ variable "default_base_tags" {
     owner   = "App Team"
     contact = "myapp@swcloudlab.net"
   }
+}
+
+variable "subnet_id" {
+  description = "The VPC ID of the VPC to use to build the AMI"
+  type = string
 }

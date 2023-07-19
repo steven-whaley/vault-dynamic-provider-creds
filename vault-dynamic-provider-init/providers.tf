@@ -9,7 +9,7 @@ terraform {
   cloud {
     organization = "swhashi"
     workspaces {
-      name = "vault-dynamic-provider-init"
+      name = "vault-dpc-instruqt-init"
     }
   }
 }

@@ -3,7 +3,7 @@ resource "hcp_hvn" "vault-dynamic-provider-hvn" {
   hvn_id         = "vault-dynamic-provider-demo-hvn"
   cloud_provider = "aws"
   region         = var.region
-  cidr_block     = "172.16.1.0/24"
+  cidr_block     = var.hvn_cidr
 }
 
 # Create HCP Vault Cluster

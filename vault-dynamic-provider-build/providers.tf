@@ -18,7 +18,7 @@ terraform {
   cloud {
     organization = "swhashi"
     workspaces {
-      name = "vault-dynamic-provider-build"
+      name = "vault-dpc-instruqt-build"
     }
   }
 }
@@ -30,8 +30,8 @@ provider "aws" {
 provider "tfe" {}
 
 provider "vault" {
-  address   = data.tfe_outputs.vault_dynamic_provider_init.values.vault_pub_url
-  token     = data.tfe_outputs.vault_dynamic_provider_init.values.vault_token
+  address   = data.tfe_outputs.vault_dpc_instruqt_init.values.vault_pub_url
+  token     = data.tfe_outputs.vault_dpc_instruqt_init.values.vault_token
   namespace = "admin"
 }
 
